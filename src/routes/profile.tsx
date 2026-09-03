@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import {
   ChevronRight,
   FileText,
   History,
   Lock,
   LogOut,
+  Save,
   Settings,
   User,
 } from "lucide-react";
 import { PhoneShell } from "@/components/nirogx/phone-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -17,29 +22,65 @@ export const Route = createFileRoute("/profile")({
       {
         name: "description",
         content:
-          "Manage your NirogX profile, medical history, app settings, and privacy preferences.",
+          "Manage your NirogX profile and health vitals for accurate health scoring.",
       },
       { property: "og:title", content: "Profile & Settings | NirogX" },
       {
         property: "og:description",
-        content: "Your NirogX account, vitals, and HIPAA-aligned preferences.",
+        content: "Your NirogX profile and health vitals.",
       },
     ],
   }),
   component: Profile,
 });
 
-const user = {
-  name: "Aarav Sharma",
-  email: "aarav.sharma@nirogx.health",
-  initials: "AS",
+const PROFILE_KEY = "nirogx_user_profile";
+const VITALS_KEY = "nirogx_user_vitals";
+
+interface UserProfile {
+  name: string;
+  initials: string;
+}
+
+interface UserVitals {
+  age: number | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  heart_rate: number | null;
+  blood_pressure_systolic: number | null;
+  blood_pressure_diastolic: number | null;
+  sleep_hours: number | null;
+  daily_steps: number | null;
+}
+
+const DEFAULT_VITALS: UserVitals = {
+  age: null,
+  height_cm: null,
+  weight_kg: null,
+  heart_rate: null,
+  blood_pressure_systolic: null,
+  blood_pressure_diastolic: null,
+  sleep_hours: null,
+  daily_steps: null,
 };
 
-const vitals = [
-  { label: "Blood Type", value: "O+" },
-  { label: "Age", value: "24" },
-  { label: "Weight", value: "70 kg" },
-];
+function loadProfile(): UserProfile {
+  if (typeof window === "undefined") return { name: "User", initials: "U" };
+  try {
+    const saved = localStorage.getItem(PROFILE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return { name: "User", initials: "U" };
+}
+
+function loadVitals(): UserVitals {
+  if (typeof window === "undefined") return DEFAULT_VITALS;
+  try {
+    const saved = localStorage.getItem(VITALS_KEY);
+    if (saved) return { ...DEFAULT_VITALS, ...JSON.parse(saved) };
+  } catch {}
+  return DEFAULT_VITALS;
+}
 
 const menuItems = [
   { icon: User, label: "Personal Information", to: "/profile" },
@@ -49,29 +90,76 @@ const menuItems = [
 ];
 
 function Profile() {
+  const [profile] = useState<UserProfile>(loadProfile);
+  const [vitals, setVitals] = useState<UserVitals>(loadVitals);
+  const [saved, setSaved] = useState(false);
+
+  const handleVitalChange = (key: keyof UserVitals, value: string) => {
+    const num = value === "" ? null : Number(value);
+    setVitals((prev) => ({ ...prev, [key]: num }));
+    setSaved(false);
+  };
+
+  const handleSave = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(VITALS_KEY, JSON.stringify(vitals));
+    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const vitalFields: { key: keyof UserVitals; label: string; unit: string; placeholder: string }[] = [
+    { key: "age", label: "Age", unit: "years", placeholder: "e.g. 25" },
+    { key: "height_cm", label: "Height", unit: "cm", placeholder: "e.g. 170" },
+    { key: "weight_kg", label: "Weight", unit: "kg", placeholder: "e.g. 65" },
+    { key: "heart_rate", label: "Resting Heart Rate", unit: "bpm", placeholder: "e.g. 72" },
+    { key: "blood_pressure_systolic", label: "BP Systolic", unit: "mmHg", placeholder: "e.g. 120" },
+    { key: "blood_pressure_diastolic", label: "BP Diastolic", unit: "mmHg", placeholder: "e.g. 80" },
+    { key: "sleep_hours", label: "Sleep", unit: "hours", placeholder: "e.g. 7.5" },
+    { key: "daily_steps", label: "Daily Steps", unit: "steps", placeholder: "e.g. 8000" },
+  ];
+
   return (
     <PhoneShell>
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-6 pt-8">
         {/* User Identity */}
         <section className="flex flex-col items-center">
           <div className="grid size-24 place-items-center rounded-full border-4 border-primary bg-accent text-2xl font-semibold text-accent-foreground shadow-soft">
-            {user.initials}
+            {profile.initials}
           </div>
-          <h1 className="mt-4 text-xl font-semibold tracking-tight">{user.name}</h1>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
+          <h1 className="mt-4 text-xl font-semibold tracking-tight">{profile.name}</h1>
+          <p className="text-sm text-muted-foreground">NirogX Health Profile</p>
         </section>
 
-        {/* Quick Vitals */}
-        <section className="mt-6 flex justify-center gap-3">
-          {vitals.map(({ label, value }) => (
-            <article
-              key={label}
-              className="flex flex-1 flex-col items-center rounded-2xl border border-border bg-card p-3 shadow-soft"
-            >
-              <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="mt-1 text-sm font-semibold">{value}</p>
-            </article>
-          ))}
+        {/* Editable Vitals */}
+        <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold tracking-tight">Health Vitals</h2>
+            <p className="text-[11px] text-muted-foreground">Used for health score calculation</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {vitalFields.map(({ key, label, unit, placeholder }) => (
+              <div key={key} className="space-y-1">
+                <Label className="text-[11px] font-medium text-muted-foreground">
+                  {label} <span className="text-[10px]">({unit})</span>
+                </Label>
+                <Input
+                  type="number"
+                  value={vitals[key] ?? ""}
+                  onChange={(e) => handleVitalChange(key, e.target.value)}
+                  placeholder={placeholder}
+                  className="h-9 rounded-lg bg-background text-sm"
+                />
+              </div>
+            ))}
+          </div>
+          <Button
+            onClick={handleSave}
+            className="mt-4 h-10 w-full rounded-xl text-sm"
+          >
+            <Save className="size-4" />
+            {saved ? "Saved!" : "Save Vitals"}
+          </Button>
         </section>
 
         {/* Menu List */}
@@ -101,12 +189,15 @@ function Profile() {
 
         {/* Log Out */}
         <section className="mt-6">
-          <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-background py-3.5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/5">
+          <Link
+            to="/"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-background py-3.5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/5"
+          >
             <LogOut className="size-4" />
             Log Out
-          </button>
+          </Link>
           <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-            This will end your HIPAA-aligned session.
+            This will return you to the welcome screen.
           </p>
         </section>
       </div>

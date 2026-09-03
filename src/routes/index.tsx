@@ -5,30 +5,49 @@ import { NirogXMark } from "@/components/nirogx/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NirogX — Clinical AI Health Intelligence" },
+      { title: "NirogX — AI Health Intelligence" },
       {
         name: "description",
         content:
-          "Log in to NirogX, the clinical-grade AI health intelligence ecosystem for symptom analysis, report scanning and insights.",
+          "Welcome to NirogX, an AI health intelligence platform for symptom analysis, health scoring and insights.",
       },
-      { property: "og:title", content: "NirogX — Clinical AI Health Intelligence" },
+      { property: "og:title", content: "NirogX — AI Health Intelligence" },
       {
         property: "og:description",
-        content: "Access your NirogX dashboard: AI symptom analysis, health score and report intelligence.",
+        content: "Access your NirogX dashboard: AI symptom analysis, health score and wellness intelligence.",
       },
     ],
   }),
-  component: LoginScreen,
+  component: WelcomeScreen,
 });
 
-function LoginScreen() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+const STORAGE_KEY = "nirogx_user_profile";
+
+function WelcomeScreen() {
   const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("Please enter your name to continue.");
+      return;
+    }
+
+    // Store user profile in localStorage for use across the app
+    if (typeof window !== "undefined") {
+      const profile = { name: trimmed, initials: getInitials(trimmed) };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    }
+
+    navigate({ to: "/dashboard" });
+  };
 
   return (
     <div className="min-h-screen w-full bg-secondary/60 py-0 sm:py-8">
@@ -38,73 +57,50 @@ function LoginScreen() {
           <h1 className="mt-8 text-2xl font-semibold leading-snug tracking-tight">
             Welcome to NirogX
           </h1>
-          <p className="mt-2 text-sm font-medium text-primary">Clinical AI Intelligence Ecosystem</p>
+          <p className="mt-2 text-sm font-medium text-primary">AI Health Intelligence Platform</p>
           <p className="mt-3 max-w-[18rem] text-sm text-muted-foreground">
-            Evidence-aligned analysis of your symptoms, reports and vitals — in one secure place.
+            Symptom analysis, health scoring and wellness insights — powered by machine learning.
           </p>
         </div>
 
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            navigate({ to: "/dashboard" });
-          }}
-        >
-          <div className="flex rounded-full bg-secondary p-1">
-            {(["login", "signup"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={cn(
-                  "flex-1 rounded-full px-4 py-2.5 text-sm font-medium transition-all",
-                  mode === m
-                    ? "bg-card text-foreground shadow-soft"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {m === "login" ? "Log In" : "Sign Up"}
-              </button>
-            ))}
-          </div>
-
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">
-              Email address
+            <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">
+              Your name
             </Label>
             <Input
-              id="email"
-              type="email"
+              id="name"
+              type="text"
               required
-              placeholder="you@clinic.com"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError("");
+              }}
+              placeholder="Enter your name"
               className="h-12 rounded-xl bg-card"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              placeholder="••••••••"
-              className="h-12 rounded-xl bg-card"
-            />
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
 
           <Button type="submit" size="lg" className="h-13 mt-1 w-full rounded-xl py-3.5 text-base">
-            Access Dashboard
+            Enter Dashboard
           </Button>
 
           <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
             <ShieldCheck className="size-3.5 text-primary" />
-            HIPAA-aligned encryption · Your data stays yours
+            Your data stays on your device
           </p>
         </form>
       </div>
     </div>
   );
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
 }

@@ -3,7 +3,7 @@ import { Activity, Home, Stethoscope, User } from "lucide-react";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/results", label: "Health Analytics", icon: Activity },
+  { to: "/Results", label: "Health Analytics", icon: Activity },
   { to: "/symptoms", label: "AI Diagnostics", icon: Stethoscope },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;

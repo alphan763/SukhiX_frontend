@@ -10,15 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResultsRouteImport } from './routes/Results'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as ResultsRouteImport } from './routes/results'
 import { Route as SymptomsRouteImport } from './routes/symptoms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultsRoute = ResultsRouteImport.update({
+  id: '/Results',
+  path: '/Results',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -36,11 +41,6 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResultsRoute = ResultsRouteImport.update({
-  id: '/results',
-  path: '/results',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SymptomsRoute = SymptomsRouteImport.update({
   id: '/symptoms',
   path: '/symptoms',
@@ -49,51 +49,51 @@ const SymptomsRoute = SymptomsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/Results': typeof ResultsRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
-  '/results': typeof ResultsRoute
   '/symptoms': typeof SymptomsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/Results': typeof ResultsRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
-  '/results': typeof ResultsRoute
   '/symptoms': typeof SymptomsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/Results': typeof ResultsRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
-  '/results': typeof ResultsRoute
   '/symptoms': typeof SymptomsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/chat' | '/dashboard' | '/profile' | '/results' | '/symptoms'
+    '/' | '/Results' | '/chat' | '/dashboard' | '/profile' | '/symptoms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/dashboard' | '/profile' | '/results' | '/symptoms'
+  to: '/' | '/Results' | '/chat' | '/dashboard' | '/profile' | '/symptoms'
   id:
     | '__root__'
     | '/'
+    | '/Results'
     | '/chat'
     | '/dashboard'
     | '/profile'
-    | '/results'
     | '/symptoms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ResultsRoute: typeof ResultsRoute
   ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
-  ResultsRoute: typeof ResultsRoute
   SymptomsRoute: typeof SymptomsRoute
 }
 
@@ -104,6 +104,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/Results': {
+      id: '/Results'
+      path: '/Results'
+      fullPath: '/Results'
+      preLoaderRoute: typeof ResultsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -127,13 +134,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/results': {
-      id: '/results'
-      path: '/results'
-      fullPath: '/results'
-      preLoaderRoute: typeof ResultsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/symptoms': {
       id: '/symptoms'
       path: '/symptoms'
@@ -146,10 +146,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ResultsRoute: ResultsRoute,
   ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
-  ResultsRoute: ResultsRoute,
   SymptomsRoute: SymptomsRoute,
 }
 export const routeTree = rootRouteImport
