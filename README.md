@@ -6,8 +6,9 @@
 - **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
+Prefer working locally? You need Node.js and npm 
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+— [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
             
 ```sh
 git clone <this-repository-url>
